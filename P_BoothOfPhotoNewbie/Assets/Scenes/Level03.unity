@@ -20554,8 +20554,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68e3700f193ffde4aa65baf744a1dff7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 3
-  turnSpeed: 500
+  moveSpeed: 10
+  turnSpeed: 100
   jumpForce: 5
   canMove: 1
 --- !u!136 &640281027
@@ -64437,7 +64437,7 @@ MonoBehaviour:
   rewardBonus: 0.2
   memoryBonus: 10
   speedBonus: 1
-  maxMemory: 20
+  maxMemory: 200
   memoryCostPerShot: 10
   memoryBar: {fileID: 843805541}
   memoryText: {fileID: 1828881252}
