@@ -116,3 +116,8 @@ MonoBehaviour:
   angryChance: 0.02
   chaseSpeed: 3
   damageOnHit: 10
+  angryDelay: 1
+  wanderSpeed: 2
+  wanderRadius: 1
+  changeInterval: 3
+  idleChance: 0

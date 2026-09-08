@@ -109,9 +109,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9a41c665a6fadf5479ae07544af92f07, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  angryChance: 0.05
-  chaseSpeed: 3
-  damageOnHit: 10
   goodShotChance: 0.4
   goodReward: 15
-  badReward: 10
+  normalChance: 0.55
+  normalReward: 10
+  angryChance: 0.05
+  chaseSpeed: 6
+  damageOnHit: 10
+  angryDelay: 1
+  wanderSpeed: 2
+  wanderRadius: 1
+  changeInterval: 3
+  idleChance: 0

@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using System.Collections;
@@ -6,40 +6,45 @@ using System.Collections.Generic;
 
 public class PlayerSectorIndicator : MonoBehaviour
 {
-    [Header("Ä¿±êÖ÷½Ç")]
+    [Header("ç›®æ ‡ä¸»è§’")]
     public Transform player;
 
-    [Header("ÉÈĞÎ²ÎÊı")]
+    [Header("æ‰‡å½¢å‚æ•°")]
     public float radius = 3f;
     public float angle = 90f;
     public int segments = 32;
     public float heightOffset = 0.05f;
 
-    [Header("µ­³ö²ÎÊı")]
+    [Header("æ·¡å‡ºå‚æ•°")]
     public float fadeDuration = 0.5f;
 
-    [Header("½±Àø¶µµ×£¨NPCÃ»¹ÒControllerÊ±ÓÃ£©")]
+    [Header("é£˜å­—æ ·å¼ï¼ˆç¼–è¾‘å™¨é‡Œè°ƒï¼‰")]
+    public Font uiFont;
+    public int floatTextFontSize = 40;
+    public FontStyle floatTextStyle = FontStyle.Bold;
+
+    [Header("å¥–åŠ±å…œåº•ï¼ˆNPCæ²¡æŒ‚Controlleræ—¶ç”¨ï¼‰")]
     public int minReward = 5;
     public int maxReward = 20;
     public Text scoreText;
     private int score = 0;
 
-    [Header("¾­ÑéÖµÏµÍ³")]
+    [Header("ç»éªŒå€¼ç³»ç»Ÿ")]
     public int expPerShot = 10;
     public int maxExp = 100;
     public Image expBar;
     public Text expText;
     private int currentExp = 0;
 
-    [Header("Éı¼¶ÏµÍ³")]
+    [Header("å‡çº§ç³»ç»Ÿ")]
     public GameObject levelUpPanel;
     private bool isLeveling = false;
 
-    [Header("Éı¼¶¼¼ÄÜ£¨Ëæ»ú3Ñ¡1£¬¿É²»ÍÏ×Ô¶¯°´Ãû×ÖÕÒ£©")]
+    [Header("å‡çº§æŠ€èƒ½ï¼ˆéšæœº3é€‰1ï¼Œå¯ä¸æ‹–è‡ªåŠ¨æŒ‰åå­—æ‰¾ï¼‰")]
     public GameObject[] skillButtons;
     private List<int> offeredSkills = new List<int>();
 
-    [Header("¼¼ÄÜÊıÖµ£¨¿Éµ÷£©")]
+    [Header("æŠ€èƒ½æ•°å€¼ï¼ˆå¯è°ƒï¼‰")]
     public float expGainBonus = 0.2f;
     public int fitnessHPBonus = 20;
     public float rewardBonus = 0.2f;
@@ -48,7 +53,7 @@ public class PlayerSectorIndicator : MonoBehaviour
     private float expGainMultiplier = 1f;
     private float rewardMultiplier = 1f;
 
-    [Header("ÄÚ´æÌõ£¨½º¾í£©")]
+    [Header("å†…å­˜æ¡ï¼ˆèƒ¶å·ï¼‰")]
     public int maxMemory = 50;
     public int memoryCostPerShot = 10;
     public Image memoryBar;
@@ -56,13 +61,13 @@ public class PlayerSectorIndicator : MonoBehaviour
     private int currentMemory;
     private float warnTimer = 0f;
 
-    [Header("ÑªÁ¿ÏµÍ³")]
+    [Header("è¡€é‡ç³»ç»Ÿ")]
     public int maxHP = 100;
     public Image hpBar;
     public Text hpText;
     private int currentHP;
 
-    [Header("µ¹¼ÆÊ±ÓëÖØ¿ª")]
+    [Header("å€’è®¡æ—¶ä¸é‡å¼€")]
     public Text timerText;
     public float gameDuration = 60f;
     public Text gameOverText;
@@ -73,28 +78,41 @@ public class PlayerSectorIndicator : MonoBehaviour
     private float timeLeft;
     private bool isGameOver = false;
 
-    [Header("¹ı¹ØÌõ¼ş")]
-    public int targetCoins = 300;            // Ê±¼äµ½ºóĞè´ïµ½µÄ½ğ±ÒÊı
-    public Text nextLevelText;               // ¹ı¹ØÌáÊ¾ÎÄ±¾£¨Æ½Ê±Òş²Ø£©
-    public string nextSceneName = "Level2";  // ÏÂÒ»¹Ø³¡¾°Ãû
-    public KeyCode nextLevelKey = KeyCode.Y; // ½øÈëÏÂÒ»¹Ø°´¼ü
-    private bool levelCleared = false;       // ÊÇ·ñ´ï±êÍ¨¹Ø
+    [Header("è¿‡å…³æ¡ä»¶")]
+    public int targetCoins = 300;
+    public Text nextLevelText;
+    public KeyCode nextLevelKey = KeyCode.Y;
+    public string nextSceneName = "";   // æ‰‹åŠ¨æŒ‡å®šä¸‹ä¸€å…³åœºæ™¯åï¼ˆç•™ç©ºåˆ™è‡ªåŠ¨ LevelN+1ï¼‰
+    private bool levelCleared = false;
+    private static int currentLevel = 1;     // å½“å‰å…³å¡æ•°ï¼ˆè·¨åœºæ™¯ä¿ç•™ï¼ŒPlayåœæ­¢é‡ç½®ï¼‰
 
-    [Header("ÉÌµêÏµÍ³")]
-    public GameObject shopPanel;          // ÉÌµêÃæ°å£¨Æ½Ê±Òş²Ø£©
-    public KeyCode shopKey = KeyCode.B;   // ÓÎÏ·ÖĞ°´B´ò¿ªÉÌµê£¨ÔİÍ££©
-    public int lensPrice = 200;           // ¾µÍ·£º¼Û¸ñ
-    public int drinkPrice = 100;          // ÒûÁÏ£º¼Û¸ñ
-    public int clockPrice = 300;          // ÖÓ±í£º¼Û¸ñ
-    public float radiusBonusPerLens = 1f; // ¾µÍ·£ºÃ¿´Î+ÉÈĞÎ°ë¾¶
-    public int healAmount = 30;           // ÒûÁÏ£ºÃ¿´Î»ØÑªÁ¿
-    public float timeBonusPerClock = 10f; // ÖÓ±í£ºÃ¿´Î+ÃëÊı
-    public Text shopMsgText;              // ÉÌµêÌáÊ¾ÎÄ±¾£¨Âò³É¹¦/½ğ±Ò²»×ã£©
-    private bool isShopOpen = false;      // ÉÌµêÊÇ·ñ´ò¿ª
+    [Header("è·¨å…³ç»§æ‰¿ï¼ˆYè¿›ä¸‹ä¸€å…³ä¿ç•™ï¼›Ré‡å¼€æ¸…é›¶ï¼‰")]
+    private static bool carryOver = false;
+    private static int carryCoins = 0;
+    private static float carryExpGain = 1f;
+    private static float carryRewardGain = 1f;
+    private static int carryHPBonus = 0;
+    private static int carryMemoryBonus = 0;
+    private static float carrySpeedBonus = 0f;
+    private int baseMaxHP;
+    private int baseMaxMemory;
+    private float baseMoveSpeed;
+
+    [Header("å•†åº—ç³»ç»Ÿ")]
+    public GameObject shopPanel;
+    public KeyCode shopKey = KeyCode.B;
+    public int lensPrice = 200;
+    public int drinkPrice = 100;
+    public int clockPrice = 300;
+    public float angleBonusPerLens = 20f;         // é•œå¤´ï¼šæ¯æ¬¡+æ‰‡å½¢å¼ å¼€è§’åº¦
+    public int healAmount = 30;
+    public float timeBonusPerClock = 10f;
+    public Text shopMsgText;
+    private bool isShopOpen = false;
     private float shopMsgTimer = 0f;
-    // ¿ç¾Ö³Ö¾Ã¼Ó³É£¨ÖØ¿ª³¡¾°²»¶ª£»Í£Ö¹Play²ÅÖØÖÃ£©
-    private static float bonusRadius = 0f;   // ¾µÍ·ÀÛ¼Æ¼Ó³É
-    private static float bonusTime = 0f;     // ÖÓ±íÀÛ¼Æ¼Ó³É
+    // è®¾å¤‡åŠ æˆï¼ˆè·¨å±€ä¿ç•™ï¼šé‡å¼€åœºæ™¯ä¸ä¸¢ï¼›åœæ­¢Playæ‰é‡ç½®ï¼‰
+    private static float bonusAngle = 0f;
+    private static float bonusTime = 0f;
 
     private MeshFilter meshFilter;
     private MeshCollider meshCollider;
@@ -102,8 +120,32 @@ public class PlayerSectorIndicator : MonoBehaviour
 
     void Awake()
     {
-        // Ó¦ÓÃ¿ç¾Ö¼Ó³É£¨ÏÈÓÚÉÈĞÎMesh´´½¨£©
-        radius += bonusRadius;
+        // è®°å½•æœ¬å…³åŸºç¡€å€¼ï¼ˆInspectoråŸå§‹å€¼ï¼Œç”¨äºè·¨å…³è®¡ç®—åŠ æˆï¼‰
+        baseMaxHP = maxHP;
+        baseMaxMemory = maxMemory;
+        baseMoveSpeed = (playerMovement != null) ? playerMovement.moveSpeed : 0f;
+
+        // è·¨å…³ç»§æ‰¿ï¼šYè¿›ä¸‹ä¸€å…³ä¿ç•™é‡‘å¸+å‡çº§æ•ˆæœ
+        if (carryOver)
+        {
+            score = carryCoins;
+            expGainMultiplier = carryExpGain;
+            rewardMultiplier = carryRewardGain;
+            maxHP += carryHPBonus;
+            maxMemory += carryMemoryBonus;
+            if (playerMovement != null)
+                playerMovement.moveSpeed += carrySpeedBonus;
+            carryOver = false;   // ç”¨å®Œå³æ¸…ï¼ŒRé‡å¼€å°±æ˜¯å…¨æ–°å¼€å±€
+        }
+        else
+        {
+            score = 0;
+            expGainMultiplier = 1f;
+            rewardMultiplier = 1f;
+        }
+
+        // è®¾å¤‡åŠ æˆï¼ˆé•œå¤´/é’Ÿè¡¨è·¨å±€ä¿ç•™ï¼‰
+        angle += bonusAngle;
         timeLeft = gameDuration + bonusTime;
 
         meshFilter = GetComponent<MeshFilter>();
@@ -125,8 +167,7 @@ public class PlayerSectorIndicator : MonoBehaviour
         currentMemory = maxMemory;
         currentHP = maxHP;
         currentExp = 0;
-        expGainMultiplier = 1f;
-        rewardMultiplier = 1f;
+        UpdateScoreUI();
         UpdateMemoryUI();
         UpdateHPUI();
         UpdateExpUI();
@@ -157,7 +198,7 @@ public class PlayerSectorIndicator : MonoBehaviour
         transform.position = player.position + Vector3.up * heightOffset;
         transform.rotation = Quaternion.Euler(0f, player.eulerAngles.y, 0f);
 
-        // F£ºÅÄÉãÉÈĞÎÄÚ×î½ü1¸öNPC
+        // Fï¼šæ‹æ‘„æ‰‡å½¢å†…æœ€è¿‘1ä¸ªNPC
         if (!isGameOver && !isLeveling && !isShopOpen && Input.GetKeyDown(KeyCode.F))
         {
             if (currentMemory >= memoryCostPerShot)
@@ -176,15 +217,15 @@ public class PlayerSectorIndicator : MonoBehaviour
                         if (outcome == 2)
                         {
                             npc.TriggerAngry();
-                            StartCoroutine(SpawnFloatText(target.transform.position, "ÉúÆø!", new Color(1f, 0.3f, 0.3f)));
+                            StartCoroutine(SpawnFloatText(target.transform.position, "ç”Ÿæ°”!", new Color(1f, 0.3f, 0.3f)));
                         }
                         else
                         {
                             int rewardCoins = GetRewardWithMultiplier(npc.GetReward(outcome));
                             AddExp(GetExpGain());
                             string msg = (outcome == 0)
-                                ? "+" + rewardCoins + " ³öÆ¬!"
-                                : "+" + rewardCoins + " ÆÕÍ¨";
+                                ? "+" + rewardCoins + " å‡ºç‰‡!"
+                                : "+" + rewardCoins + " æ™®é€š";
                             Color col = (outcome == 0)
                                 ? new Color(1f, 0.84f, 0f)
                                 : Color.white;
@@ -211,7 +252,7 @@ public class PlayerSectorIndicator : MonoBehaviour
                 if (bg != null)
                     bg.enabled = false;
                 if (memoryText != null)
-                    memoryText.text = "Ê£ÓàÄÚ´æÈİÁ¿²»×ã!";
+                    memoryText.text = "å‰©ä½™å†…å­˜å®¹é‡ä¸è¶³!";
             }
         }
 
@@ -222,7 +263,7 @@ public class PlayerSectorIndicator : MonoBehaviour
                 UpdateMemoryUI();
         }
 
-        // µ¹¼ÆÊ±
+        // å€’è®¡æ—¶
         if (!isGameOver && !isLeveling && !isShopOpen)
         {
             timeLeft -= Time.deltaTime;
@@ -237,32 +278,47 @@ public class PlayerSectorIndicator : MonoBehaviour
             {
                 int m = (int)(timeLeft / 60f);
                 int s = (int)(timeLeft % 60f);
-                timerText.text = string.Format("Ê±¼ä: {0:00}:{1:00}", m, s);
+                timerText.text = string.Format("æ—¶é—´: {0:00}:{1:00}", m, s);
             }
         }
 
-        // ÖØ¿ª
+        // é‡å¼€ï¼ˆR = å…¨æ–°å¼€å±€ï¼‰
         if (Input.GetKeyDown(restartKey))
         {
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
 
-        // ÓÎÏ·½áÊøºó°´X´ò¿ªÉÌµê
+        // æ¸¸æˆç»“æŸåæŒ‰Xæ‰“å¼€å•†åº—
         if (isGameOver && !isShopOpen && Input.GetKeyDown(KeyCode.X))
         {
             OpenShop();
         }
 
-        // ÓÎÏ·ÖĞ°´B´ò¿ªÉÌµê£¨ÔİÍ££©
+        // æ¸¸æˆä¸­æŒ‰Bæ‰“å¼€å•†åº—ï¼ˆæš‚åœï¼‰
         if (!isGameOver && !isLeveling && !isShopOpen && Input.GetKeyDown(shopKey))
         {
             OpenShop();
         }
 
-        // ´ï±êÍ¨¹Øºó°´Y½øÈëÏÂÒ»¹Ø
+        // è¾¾æ ‡é€šå…³åæŒ‰Yè¿›å…¥ä¸‹ä¸€å…³ï¼ˆä¿å­˜è·¨å…³æ•°æ®ï¼‰
         if (isGameOver && levelCleared && Input.GetKeyDown(nextLevelKey))
         {
-            SceneManager.LoadScene(nextSceneName);
+            carryOver = true;
+            carryCoins = score;                                    // å‰©ä½™é‡‘å¸
+            carryExpGain = expGainMultiplier;                      // è¿›ä¿®æ•ˆæœ
+            carryRewardGain = rewardMultiplier;                    // æŠ¥é…¬å¢åŠ æ•ˆæœ
+            carryHPBonus = maxHP - baseMaxHP;                      // å¥èº«æ•ˆæœ
+            carryMemoryBonus = maxMemory - baseMaxMemory;          // å†…å­˜å¢åŠ æ•ˆæœ
+            carrySpeedBonus = (playerMovement != null) ? playerMovement.moveSpeed - baseMoveSpeed : 0f;  // é€Ÿåº¦æ•ˆæœ
+
+            string next = GetNextSceneName();
+            if (Application.CanStreamedLevelBeLoaded(next))
+            {
+                int parsed = ParseLevelNumber(next);
+                if (parsed > 0) currentLevel = parsed;   // æ›´æ–°å…³å¡è®¡æ•°
+                SceneManager.LoadScene(next);
+            }
+            // åœºæ™¯ä¸åœ¨Build Settingsé‡Œï¼šä¸è·³è½¬ï¼Œç•™åœ¨æœ¬å…³
         }
     }
 
@@ -279,7 +335,7 @@ public class PlayerSectorIndicator : MonoBehaviour
     void FailGame()
     {
         isGameOver = true;
-        EndGame("È¼¾¡ÁË£¡×îÖÕ½ğ±ÒÊı: " + score);
+        EndGame("ç‡ƒå°½äº†ï¼æœ€ç»ˆé‡‘å¸æ•°: " + score);
     }
 
     void GameOver()
@@ -287,17 +343,38 @@ public class PlayerSectorIndicator : MonoBehaviour
         if (score >= targetCoins)
         {
             levelCleared = true;
-            EndGame("Ê±¼äµ½£¡´ï±êÍ¨¹Ø£¡×îÖÕ½ğ±ÒÊı: " + score);
+            EndGame("æ—¶é—´åˆ°ï¼è¾¾æ ‡é€šå…³ï¼æœ€ç»ˆé‡‘å¸æ•°: " + score);
             if (nextLevelText != null)
             {
-                nextLevelText.text = "°´ " + nextLevelKey + " ½øÈëÏÂÒ»¹Ø";
+                int nextNum = ParseLevelNumber(GetNextSceneName());
+                nextLevelText.text = (nextNum > 0)
+                    ? "æŒ‰ " + nextLevelKey + " è¿›å…¥ä¸‹ä¸€å…³"
+                    : "æŒ‰ " + nextLevelKey + " è¿›å…¥ä¸‹ä¸€å…³";
                 nextLevelText.gameObject.SetActive(true);
             }
         }
         else
         {
-            EndGame("Ê±¼äµ½£¡½ğ±ÒÊı: " + score + "£¨Ä¿±ê " + targetCoins + "£©");
+            EndGame("æ—¶é—´åˆ°ï¼é‡‘å¸æ•°: " + score + "ï¼ˆç›®æ ‡ " + targetCoins + "ï¼‰");
         }
+    }
+
+    // ä¸‹ä¸€å…³åœºæ™¯åï¼šæ‰‹åŠ¨å­—æ®µä¼˜å…ˆï¼Œç•™ç©ºè‡ªåŠ¨ LevelN+1
+    string GetNextSceneName()
+    {
+        if (!string.IsNullOrEmpty(nextSceneName))
+            return nextSceneName;
+        return "Level" + (currentLevel + 1);
+    }
+
+    // ä»åœºæ™¯åé‡Œè§£æå…³å¡æ•°å­—ï¼ˆ"Level03"â†’3ï¼Œ"Level01"â†’1ï¼‰ï¼Œè§£æä¸äº†è¿”å›-1
+    int ParseLevelNumber(string sceneName)
+    {
+        string digits = "";
+        foreach (char c in sceneName)
+            if (char.IsDigit(c)) digits += c;
+        int n;
+        return int.TryParse(digits, out n) ? n : -1;
     }
 
     void EndGame(string message)
@@ -311,16 +388,21 @@ public class PlayerSectorIndicator : MonoBehaviour
         NPCSpawner sp = FindObjectOfType<NPCSpawner>();
         if (sp != null) sp.spawning = false;
 
+        // æ¸¸æˆç»“æŸï¼šå†»ç»“æ‰€æœ‰NPCï¼ˆåœæ­¢æ¸¸èµ°/è¿½å‡»ï¼‰
+        NPCController[] npcs = FindObjectsOfType<NPCController>();
+        foreach (NPCController n in npcs)
+            if (n != null) n.Freeze();
+
         if (restartText != null)
         {
-            restartText.text = "°´ R ÖØĞÂ¿ªÊ¼";
+            restartText.text = "æŒ‰ R é‡æ–°å¼€å§‹";
             restartText.gameObject.SetActive(true);
             StartCoroutine(BlinkRestartText());
         }
 
         if (shopText != null)
         {
-            shopText.text = "°´ X ½øÈëÉÌµê";
+            shopText.text = "æŒ‰ X è¿›å…¥å•†åº—";
             shopText.gameObject.SetActive(true);
         }
     }
@@ -339,9 +421,8 @@ public class PlayerSectorIndicator : MonoBehaviour
         }
     }
 
-    // ============ ÉÌµê ============
+    // ============ å•†åº— ============
 
-    // ´ò¿ªÉÌµê£¨ÓÎÏ·½áÊø°´X / ÓÎÏ·ÖĞ°´B£©
     public void OpenShop()
     {
         if (isShopOpen) return;
@@ -362,7 +443,6 @@ public class PlayerSectorIndicator : MonoBehaviour
             shopPanel.SetActive(true);
     }
 
-    // ¹Ø±ÕÉÌµê
     public void CloseShop()
     {
         isShopOpen = false;
@@ -389,41 +469,40 @@ public class PlayerSectorIndicator : MonoBehaviour
         }
     }
 
-    // ¾µÍ·£ºÉÈĞÎ·¶Î§+
+    // é•œå¤´ï¼šæ‰‡å½¢å¼ å¼€è§’åº¦+
     public void BuyLens()
     {
-        if (score < lensPrice) { ShowShopMsg("½ğ±Ò²»×ã! ĞèÒª" + lensPrice); return; }
+        if (score < lensPrice) { ShowShopMsg("é‡‘å¸ä¸è¶³! éœ€è¦" + lensPrice + "é‡‘å¸"); return; }
         score -= lensPrice;
-        bonusRadius += radiusBonusPerLens;
-        radius += radiusBonusPerLens;
+        bonusAngle += angleBonusPerLens;
+        angle += angleBonusPerLens;
         RebuildSectorMesh();
         UpdateScoreUI();
-        ShowShopMsg("¾µÍ·Éı¼¶! ÉÈĞÎ·¶Î§+" + radiusBonusPerLens);
+        ShowShopMsg("é•œå¤´å‡çº§! æ‰‡å½¢å¼ å¼€+" + angleBonusPerLens + "Â°");
     }
 
-    // ÒûÁÏ£º»ØÑª
+    // é¥®æ–™ï¼šå›è¡€
     public void BuyDrink()
     {
-        if (score < drinkPrice) { ShowShopMsg("½ğ±Ò²»×ã! ĞèÒª" + drinkPrice); return; }
+        if (score < drinkPrice) { ShowShopMsg("é‡‘å¸ä¸è¶³! éœ€è¦" + drinkPrice + "é‡‘å¸"); return; }
         score -= drinkPrice;
         currentHP = Mathf.Min(currentHP + healAmount, maxHP);
         UpdateHPUI();
         UpdateScoreUI();
-        ShowShopMsg("ÑªÁ¿»Ø¸´+" + healAmount);
+        ShowShopMsg("è¡€é‡å›å¤+" + healAmount);
     }
 
-    // ÖÓ±í£ºÔö¼ÓÓÎÏ·Ê±¼ä
+    // é’Ÿè¡¨ï¼šå¢åŠ æ¸¸æˆæ—¶é—´
     public void BuyClock()
     {
-        if (score < clockPrice) { ShowShopMsg("½ğ±Ò²»×ã! ĞèÒª" + clockPrice); return; }
+        if (score < clockPrice) { ShowShopMsg("é‡‘å¸ä¸è¶³! éœ€è¦" + clockPrice + "é‡‘å¸"); return; }
         score -= clockPrice;
         bonusTime += timeBonusPerClock;
         timeLeft += timeBonusPerClock;
         UpdateScoreUI();
-        ShowShopMsg("Ê±¼ä+" + timeBonusPerClock + "Ãë!");
+        ShowShopMsg("æ—¶é—´+" + timeBonusPerClock + "ç§’!");
     }
 
-    // ÉÌµêÌáÊ¾
     void ShowShopMsg(string msg)
     {
         if (shopMsgText != null)
@@ -441,7 +520,6 @@ public class PlayerSectorIndicator : MonoBehaviour
             shopMsgText.text = "";
     }
 
-    // ÂòÁË¾µÍ·ºóÖØ½¨ÉÈĞÎMesh
     void RebuildSectorMesh()
     {
         if (meshFilter != null)
@@ -450,7 +528,7 @@ public class PlayerSectorIndicator : MonoBehaviour
             meshCollider.sharedMesh = meshFilter.mesh;
     }
 
-    // ============ ÆäËûÏµÍ³ ============
+    // ============ å…¶ä»–ç³»ç»Ÿ ============
 
     Collider GetNearestNPC()
     {
@@ -480,7 +558,7 @@ public class PlayerSectorIndicator : MonoBehaviour
             memoryBar.fillAmount = Mathf.Clamp01((float)currentMemory / maxMemory);
         }
         //if (memoryText != null)
-        //memoryText.text = "Ê£ÓàÄÚ´æ: " + currentMemory + "/" + maxMemory;
+        //memoryText.text = "å‰©ä½™å†…å­˜: " + currentMemory + "/" + maxMemory;
     }
 
     void UpdateHPUI()
@@ -492,7 +570,7 @@ public class PlayerSectorIndicator : MonoBehaviour
             hpBar.fillAmount = Mathf.Clamp01((float)currentHP / maxHP);
         }
         if (hpText != null)
-            hpText.text = "ÑªÁ¿: " + currentHP + "/" + maxHP;
+            hpText.text = "è¡€é‡: " + currentHP + "/" + maxHP;
     }
 
     void UpdateExpUI()
@@ -504,13 +582,13 @@ public class PlayerSectorIndicator : MonoBehaviour
             expBar.fillAmount = Mathf.Clamp01((float)currentExp / maxExp);
         }
         if (expText != null)
-            expText.text = "¾­Ñé: " + currentExp + "/" + maxExp;
+            expText.text = "ç»éªŒ: " + currentExp + "/" + maxExp;
     }
 
     void UpdateScoreUI()
     {
         if (scoreText != null)
-            scoreText.text = "½ğ±ÒÊıÁ¿: " + score;
+            scoreText.text = "é‡‘å¸æ•°é‡: " + score;
     }
 
     int GetExpGain()
@@ -673,9 +751,9 @@ public class PlayerSectorIndicator : MonoBehaviour
         textObj.transform.SetParent(canvasObj.transform, false);
         Text txt = textObj.AddComponent<Text>();
         txt.text = msg;
-        txt.font = GetUIFont();
-        txt.fontSize = 40;
-        txt.fontStyle = FontStyle.Bold;
+        txt.font = (uiFont != null) ? uiFont : GetUIFont();
+        txt.fontSize = floatTextFontSize;
+        txt.fontStyle = floatTextStyle;
         txt.color = color;
         txt.alignment = TextAnchor.MiddleCenter;
         RectTransform rt = textObj.GetComponent<RectTransform>();
@@ -697,6 +775,8 @@ public class PlayerSectorIndicator : MonoBehaviour
     {
         Collider col = npc.GetComponent<Collider>();
         if (col != null) col.enabled = false;
+        NPCController npcCtrl = npc.GetComponent<NPCController>();
+        if (npcCtrl != null) npcCtrl.Freeze();
 
         Renderer[] renderers = npc.GetComponentsInChildren<Renderer>();
         List<Material> mats = new List<Material>();
