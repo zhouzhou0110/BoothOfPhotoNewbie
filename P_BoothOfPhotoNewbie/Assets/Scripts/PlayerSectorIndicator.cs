@@ -67,13 +67,34 @@ public class PlayerSectorIndicator : MonoBehaviour
     public float gameDuration = 60f;
     public Text gameOverText;
     public Text restartText;
-    public Text shopText;                    // 进入商店提示文本
-    public GameObject shopPanel;             // ← 新增：商店面板（平时隐藏）
-    private bool isShopOpen = false;         // ← 新增：商店是否已打开
+    public Text shopText;
     public KeyCode restartKey = KeyCode.R;
     public PlayerController playerMovement;
     private float timeLeft;
     private bool isGameOver = false;
+
+    [Header("过关条件")]
+    public int targetCoins = 300;            // 时间到后需达到的金币数
+    public Text nextLevelText;               // 过关提示文本（平时隐藏）
+    public string nextSceneName = "Level2";  // 下一关场景名
+    public KeyCode nextLevelKey = KeyCode.Y; // 进入下一关按键
+    private bool levelCleared = false;       // 是否达标通关
+
+    [Header("商店系统")]
+    public GameObject shopPanel;          // 商店面板（平时隐藏）
+    public KeyCode shopKey = KeyCode.B;   // 游戏中按B打开商店（暂停）
+    public int lensPrice = 200;           // 镜头：价格
+    public int drinkPrice = 100;          // 饮料：价格
+    public int clockPrice = 300;          // 钟表：价格
+    public float radiusBonusPerLens = 1f; // 镜头：每次+扇形半径
+    public int healAmount = 30;           // 饮料：每次回血量
+    public float timeBonusPerClock = 10f; // 钟表：每次+秒数
+    public Text shopMsgText;              // 商店提示文本（买成功/金币不足）
+    private bool isShopOpen = false;      // 商店是否打开
+    private float shopMsgTimer = 0f;
+    // 跨局持久加成（重开场景不丢；停止Play才重置）
+    private static float bonusRadius = 0f;   // 镜头累计加成
+    private static float bonusTime = 0f;     // 钟表累计加成
 
     private MeshFilter meshFilter;
     private MeshCollider meshCollider;
@@ -81,6 +102,10 @@ public class PlayerSectorIndicator : MonoBehaviour
 
     void Awake()
     {
+        // 应用跨局加成（先于扇形Mesh创建）
+        radius += bonusRadius;
+        timeLeft = gameDuration + bonusTime;
+
         meshFilter = GetComponent<MeshFilter>();
         if (meshFilter == null) meshFilter = gameObject.AddComponent<MeshFilter>();
         if (GetComponent<MeshRenderer>() == null) gameObject.AddComponent<MeshRenderer>();
@@ -97,7 +122,6 @@ public class PlayerSectorIndicator : MonoBehaviour
         rb.isKinematic = true;
         rb.useGravity = false;
 
-        timeLeft = gameDuration;
         currentMemory = maxMemory;
         currentHP = maxHP;
         currentExp = 0;
@@ -111,10 +135,10 @@ public class PlayerSectorIndicator : MonoBehaviour
             restartText.gameObject.SetActive(false);
         if (shopText != null)
             shopText.gameObject.SetActive(false);
-        if (shopPanel != null)               // ← 新增
+        if (nextLevelText != null)
+            nextLevelText.gameObject.SetActive(false);
+        if (shopPanel != null)
             shopPanel.gameObject.SetActive(false);
-
-
         if (levelUpPanel != null)
             levelUpPanel.gameObject.SetActive(false);
 
@@ -134,7 +158,7 @@ public class PlayerSectorIndicator : MonoBehaviour
         transform.rotation = Quaternion.Euler(0f, player.eulerAngles.y, 0f);
 
         // F：拍摄扇形内最近1个NPC
-        if (!isGameOver && !isLeveling && Input.GetKeyDown(KeyCode.F))
+        if (!isGameOver && !isLeveling && !isShopOpen && Input.GetKeyDown(KeyCode.F))
         {
             if (currentMemory >= memoryCostPerShot)
             {
@@ -181,16 +205,14 @@ public class PlayerSectorIndicator : MonoBehaviour
             {
                 warnTimer = 60f;
                 if (memoryBar != null)
-                    memoryBar.gameObject.SetActive(false);   // 隐藏蓝色填充条
+                    memoryBar.gameObject.SetActive(false);
                 Image bg = (memoryBar != null && memoryBar.transform.parent != null)
                     ? memoryBar.transform.parent.GetComponent<Image>() : null;
                 if (bg != null)
-                    bg.enabled = false;                      // ← 新增：同时隐藏灰色背景框
+                    bg.enabled = false;
                 if (memoryText != null)
-                    memoryText.text = "内存不足!";
+                    memoryText.text = "剩余内存容量不足!";
             }
-
-
         }
 
         if (warnTimer > 0f)
@@ -201,7 +223,7 @@ public class PlayerSectorIndicator : MonoBehaviour
         }
 
         // 倒计时
-        if (!isGameOver && !isLeveling)
+        if (!isGameOver && !isLeveling && !isShopOpen)
         {
             timeLeft -= Time.deltaTime;
             if (timeLeft <= 0f)
@@ -225,13 +247,23 @@ public class PlayerSectorIndicator : MonoBehaviour
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
 
-        // 进入商店（仅游戏结束后）
-        // 打开商店面板（仅游戏结束后按X）
+        // 游戏结束后按X打开商店
         if (isGameOver && !isShopOpen && Input.GetKeyDown(KeyCode.X))
         {
             OpenShop();
         }
 
+        // 游戏中按B打开商店（暂停）
+        if (!isGameOver && !isLeveling && !isShopOpen && Input.GetKeyDown(shopKey))
+        {
+            OpenShop();
+        }
+
+        // 达标通关后按Y进入下一关
+        if (isGameOver && levelCleared && Input.GetKeyDown(nextLevelKey))
+        {
+            SceneManager.LoadScene(nextSceneName);
+        }
     }
 
     public void TakeDamage(int dmg)
@@ -252,7 +284,20 @@ public class PlayerSectorIndicator : MonoBehaviour
 
     void GameOver()
     {
-        EndGame("时间到！最终金币数: " + score);
+        if (score >= targetCoins)
+        {
+            levelCleared = true;
+            EndGame("时间到！达标通关！最终金币数: " + score);
+            if (nextLevelText != null)
+            {
+                nextLevelText.text = "按 " + nextLevelKey + " 进入下一关";
+                nextLevelText.gameObject.SetActive(true);
+            }
+        }
+        else
+        {
+            EndGame("时间到！金币数: " + score + "（目标 " + targetCoins + "）");
+        }
     }
 
     void EndGame(string message)
@@ -279,41 +324,6 @@ public class PlayerSectorIndicator : MonoBehaviour
             shopText.gameObject.SetActive(true);
         }
     }
-    // 打开商店面板（游戏结束后按X触发）
-    public void OpenShop()
-    {
-        if (!isGameOver || isShopOpen) return;
-        isShopOpen = true;
-
-        // 隐藏结束提示文本，避免和面板叠在一起
-        if (restartText != null) restartText.gameObject.SetActive(false);
-        if (shopText != null) shopText.gameObject.SetActive(false);
-
-        // 解锁鼠标（面板上要点按钮）
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-
-        if (shopPanel != null)
-            shopPanel.SetActive(true);
-    }
-
-    // 关闭商店面板，返回结束界面
-    public void CloseShop()
-    {
-        isShopOpen = false;
-
-        if (shopPanel != null)
-            shopPanel.SetActive(false);
-
-        // 恢复结束提示（重置 enabled，防止闪烁协程停在隐藏状态）
-        if (restartText != null) { restartText.enabled = true; restartText.gameObject.SetActive(true); }
-        if (shopText != null) { shopText.enabled = true; shopText.gameObject.SetActive(true); }
-
-        // 结束界面鼠标保持解锁
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-    }
-
 
     IEnumerator BlinkRestartText()
     {
@@ -323,9 +333,124 @@ public class PlayerSectorIndicator : MonoBehaviour
                 restartText.enabled = !restartText.enabled;
             if (shopText != null)
                 shopText.enabled = !shopText.enabled;
+            if (nextLevelText != null)
+                nextLevelText.enabled = !nextLevelText.enabled;
             yield return new WaitForSeconds(0.5f);
         }
     }
+
+    // ============ 商店 ============
+
+    // 打开商店（游戏结束按X / 游戏中按B）
+    public void OpenShop()
+    {
+        if (isShopOpen) return;
+        isShopOpen = true;
+
+        if (playerMovement != null)
+            playerMovement.canMove = false;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        if (!isGameOver)
+        {
+            NPCSpawner sp = FindObjectOfType<NPCSpawner>();
+            if (sp != null) sp.spawning = false;
+        }
+
+        if (shopPanel != null)
+            shopPanel.SetActive(true);
+    }
+
+    // 关闭商店
+    public void CloseShop()
+    {
+        isShopOpen = false;
+
+        if (shopPanel != null)
+            shopPanel.SetActive(false);
+
+        if (!isGameOver)
+        {
+            if (playerMovement != null)
+                playerMovement.canMove = true;
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+            NPCSpawner sp = FindObjectOfType<NPCSpawner>();
+            if (sp != null) sp.spawning = true;
+        }
+        else
+        {
+            if (restartText != null) { restartText.enabled = true; restartText.gameObject.SetActive(true); }
+            if (shopText != null) { shopText.enabled = true; shopText.gameObject.SetActive(true); }
+            if (nextLevelText != null) { nextLevelText.enabled = true; nextLevelText.gameObject.SetActive(true); }
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+    }
+
+    // 镜头：扇形范围+
+    public void BuyLens()
+    {
+        if (score < lensPrice) { ShowShopMsg("金币不足! 需要" + lensPrice); return; }
+        score -= lensPrice;
+        bonusRadius += radiusBonusPerLens;
+        radius += radiusBonusPerLens;
+        RebuildSectorMesh();
+        UpdateScoreUI();
+        ShowShopMsg("镜头升级! 扇形范围+" + radiusBonusPerLens);
+    }
+
+    // 饮料：回血
+    public void BuyDrink()
+    {
+        if (score < drinkPrice) { ShowShopMsg("金币不足! 需要" + drinkPrice); return; }
+        score -= drinkPrice;
+        currentHP = Mathf.Min(currentHP + healAmount, maxHP);
+        UpdateHPUI();
+        UpdateScoreUI();
+        ShowShopMsg("血量回复+" + healAmount);
+    }
+
+    // 钟表：增加游戏时间
+    public void BuyClock()
+    {
+        if (score < clockPrice) { ShowShopMsg("金币不足! 需要" + clockPrice); return; }
+        score -= clockPrice;
+        bonusTime += timeBonusPerClock;
+        timeLeft += timeBonusPerClock;
+        UpdateScoreUI();
+        ShowShopMsg("时间+" + timeBonusPerClock + "秒!");
+    }
+
+    // 商店提示
+    void ShowShopMsg(string msg)
+    {
+        if (shopMsgText != null)
+        {
+            shopMsgText.text = msg;
+            StopCoroutine("HideShopMsg");
+            StartCoroutine(HideShopMsg());
+        }
+    }
+
+    IEnumerator HideShopMsg()
+    {
+        yield return new WaitForSeconds(1.5f);
+        if (shopMsgText != null)
+            shopMsgText.text = "";
+    }
+
+    // 买了镜头后重建扇形Mesh
+    void RebuildSectorMesh()
+    {
+        if (meshFilter != null)
+            meshFilter.mesh = CreateSectorMesh();
+        if (meshCollider != null)
+            meshCollider.sharedMesh = meshFilter.mesh;
+    }
+
+    // ============ 其他系统 ============
 
     Collider GetNearestNPC()
     {
@@ -345,20 +470,18 @@ public class PlayerSectorIndicator : MonoBehaviour
         if (memoryBar != null)
         {
             if (!memoryBar.gameObject.activeSelf)
-                memoryBar.gameObject.SetActive(true);        // 恢复填充条
+                memoryBar.gameObject.SetActive(true);
             Image bg = (memoryBar.transform.parent != null)
                 ? memoryBar.transform.parent.GetComponent<Image>() : null;
             if (bg != null && !bg.enabled)
-                bg.enabled = true;                           // ← 新增：恢复背景框
+                bg.enabled = true;
             memoryBar.type = Image.Type.Filled;
             memoryBar.fillMethod = Image.FillMethod.Horizontal;
             memoryBar.fillAmount = Mathf.Clamp01((float)currentMemory / maxMemory);
         }
-            // if (memoryText != null)
-            //memoryText.text = "内存容量: " + currentMemory + "/" + maxMemory;
+        //if (memoryText != null)
+        //memoryText.text = "剩余内存: " + currentMemory + "/" + maxMemory;
     }
-
-
 
     void UpdateHPUI()
     {
@@ -382,6 +505,12 @@ public class PlayerSectorIndicator : MonoBehaviour
         }
         if (expText != null)
             expText.text = "经验: " + currentExp + "/" + maxExp;
+    }
+
+    void UpdateScoreUI()
+    {
+        if (scoreText != null)
+            scoreText.text = "金币数量: " + score;
     }
 
     int GetExpGain()
@@ -520,8 +649,7 @@ public class PlayerSectorIndicator : MonoBehaviour
     void AddReward(int coins)
     {
         score += coins;
-        if (scoreText != null)
-            scoreText.text = "金币数量: " + score;
+        UpdateScoreUI();
     }
 
     Font GetUIFont()
