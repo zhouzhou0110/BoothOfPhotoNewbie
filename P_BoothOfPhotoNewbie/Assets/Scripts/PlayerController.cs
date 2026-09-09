@@ -3,6 +3,11 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerController : MonoBehaviour
 {
+    
+    Animator anim;
+
+    public Vector3 move;
+
     [Header("移动参数")]
     public float moveSpeed = 5f;
     public float turnSpeed = 100f;
@@ -17,6 +22,7 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
+        anim = GetComponent<Animator>();
         rb = GetComponent<Rigidbody>();
         rb.freezeRotation = true;
         // 隐藏并锁定鼠标（游戏中鼠标消失，视角由鼠标控制）
@@ -46,6 +52,8 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetButtonDown("Jump") && isGrounded)
             jumpPressed = true;
+
+        UpdateAnim();
     }
 
     void FixedUpdate()
@@ -61,7 +69,7 @@ public class PlayerController : MonoBehaviour
 
         float h = Input.GetAxis("Horizontal");
         float v = Input.GetAxis("Vertical");
-        Vector3 move = (transform.right * h + transform.forward * v).normalized;
+        move = (transform.right * h + transform.forward * v).normalized;
 
         Vector3 vel2 = rb.velocity;
         vel2.x = move.x * moveSpeed;
@@ -91,5 +99,10 @@ public class PlayerController : MonoBehaviour
     void OnCollisionExit(Collision collision)
     {
         isGrounded = false;
+    }
+
+    void UpdateAnim()
+    {
+        anim.SetFloat("Speed", move.magnitude);
     }
 }

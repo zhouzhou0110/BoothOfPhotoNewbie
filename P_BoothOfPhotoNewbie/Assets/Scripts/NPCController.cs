@@ -27,6 +27,12 @@ public class NPCController : MonoBehaviour
     [Range(0f, 1f)]
     public float idleChance = 0.25f;     // 换方向时发呆（原地停一下）的概率
 
+    [Header("移动动画（Move.controller 的 Speed 参数）")]
+    public Animator animator;                    // 不拖就自动找子物体上的Animator
+    public string speedParamName = "Speed";      // 控制器里的速度参数名
+    [Range(0.05f, 0.5f)]
+    public float animSpeedScale = 0.2f;          // 实际速度→动画参数换算（2游走→0.4走，6追击→1.2跑）
+
     private bool isAngry = false;
     private bool frozen = false;         // 冻结：淡出/游戏结束时置true，停止一切移动
     private Transform player;
@@ -38,6 +44,10 @@ public class NPCController : MonoBehaviour
     private float changeTimer = 0f;
     private bool isMoving = true;        // false = 发呆阶段
 
+    // 动画状态
+    private bool hasAnim = false;
+    private int speedParamHash = 0;
+
     void Start()
     {
         GameObject p = GameObject.FindGameObjectWithTag("Player");
@@ -45,6 +55,13 @@ public class NPCController : MonoBehaviour
         game = FindObjectOfType<PlayerSectorIndicator>();
         homePos = transform.position;    // 记住出生点，游走不离开它太远
         PickNewDirection();
+
+        // 自动找 Animator（根物体或子物体都行）
+        if (animator == null)
+            animator = GetComponentInChildren<Animator>(true);
+        hasAnim = animator != null;
+        if (hasAnim && !string.IsNullOrEmpty(speedParamName))
+            speedParamHash = Animator.StringToHash(speedParamName);
     }
 
     // 三结果判定：0=出片 1=普通 2=生气（三个概率各自可调，按占比掷骰）
@@ -115,11 +132,15 @@ public class NPCController : MonoBehaviour
 
     void Update()
     {
-        if (frozen) return;   // 冻结时不移动
+        if (frozen)
+        {
+            SetAnimSpeed(0f);   // 冻结：回待机动画
+            return;
+        }
 
         if (isAngry)
         {
-            // 延迟结束前原地不动；结束后追击玩家
+            // 延迟结束前原地不动（待机动画）；结束后追击（跑步动画）
             if (canChase && player != null)
             {
                 Vector3 dir = player.position - transform.position;
@@ -129,8 +150,11 @@ public class NPCController : MonoBehaviour
                     dir.Normalize();
                     transform.position += dir * chaseSpeed * Time.deltaTime;
                     transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), Time.deltaTime * 8f);
+                    SetAnimSpeed(chaseSpeed);
+                    return;
                 }
             }
+            SetAnimSpeed(0f);
             return;
         }
 
@@ -141,11 +165,12 @@ public class NPCController : MonoBehaviour
     // 随机游走：走一段→可能发呆→换方向，超出范围拉回出生点
     void Wander()
     {
-        // 发呆阶段：原地停一会儿
+        // 发呆阶段：原地停一会儿（待机动画）
         if (!isMoving)
         {
             changeTimer -= Time.deltaTime;
             if (changeTimer <= 0f) PickNewDirection();
+            SetAnimSpeed(0f);
             return;
         }
 
@@ -166,6 +191,8 @@ public class NPCController : MonoBehaviour
 
         changeTimer -= Time.deltaTime;
         if (changeTimer <= 0f) PickNewDirection();
+
+        SetAnimSpeed(wanderSpeed);   // 游走 → 走路动画
     }
 
     // 随机选一个新方向（有概率发呆一会儿）
@@ -183,6 +210,13 @@ public class NPCController : MonoBehaviour
             float a = Random.Range(0f, 360f) * Mathf.Deg2Rad;
             wanderDir = new Vector3(Mathf.Sin(a), 0f, Mathf.Cos(a));
         }
+    }
+
+    // 把当前实际速度换算成动画 Speed 参数（0=待机，0.1~0.6=走，>0.6=跑）
+    void SetAnimSpeed(float actualSpeed)
+    {
+        if (!hasAnim) return;
+        animator.SetFloat(speedParamHash, actualSpeed * animSpeedScale);
     }
 
     void OnCollisionEnter(Collision collision)

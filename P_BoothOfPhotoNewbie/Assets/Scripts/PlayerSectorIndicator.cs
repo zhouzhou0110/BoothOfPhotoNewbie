@@ -288,12 +288,6 @@ public class PlayerSectorIndicator : MonoBehaviour
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
 
-        // 游戏结束后按X打开商店
-        if (isGameOver && !isShopOpen && Input.GetKeyDown(KeyCode.X))
-        {
-            OpenShop();
-        }
-
         // 游戏中按B打开商店（暂停）
         if (!isGameOver && !isLeveling && !isShopOpen && Input.GetKeyDown(shopKey))
         {
@@ -400,11 +394,6 @@ public class PlayerSectorIndicator : MonoBehaviour
             StartCoroutine(BlinkRestartText());
         }
 
-        if (shopText != null)
-        {
-            shopText.text = "按 X 进入商店";
-            shopText.gameObject.SetActive(true);
-        }
     }
 
     IEnumerator BlinkRestartText()
@@ -413,8 +402,6 @@ public class PlayerSectorIndicator : MonoBehaviour
         {
             if (restartText != null)
                 restartText.enabled = !restartText.enabled;
-            if (shopText != null)
-                shopText.enabled = !shopText.enabled;
             if (nextLevelText != null)
                 nextLevelText.enabled = !nextLevelText.enabled;
             yield return new WaitForSeconds(0.5f);
@@ -462,7 +449,6 @@ public class PlayerSectorIndicator : MonoBehaviour
         else
         {
             if (restartText != null) { restartText.enabled = true; restartText.gameObject.SetActive(true); }
-            if (shopText != null) { shopText.enabled = true; shopText.gameObject.SetActive(true); }
             if (nextLevelText != null) { nextLevelText.enabled = true; nextLevelText.gameObject.SetActive(true); }
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;

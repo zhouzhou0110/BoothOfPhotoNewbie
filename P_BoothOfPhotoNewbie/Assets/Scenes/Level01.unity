@@ -2978,7 +2978,7 @@ MonoBehaviour:
   targetCoins: 10
   nextLevelText: {fileID: 1271235151}
   nextLevelKey: 121
-  nextSceneName: Level02
+  nextSceneName: Level02 1
   shopPanel: {fileID: 1971405651}
   shopKey: 98
   lensPrice: 200
@@ -49171,6 +49171,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68e3700f193ffde4aa65baf744a1dff7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  move: {x: 0, y: 0, z: 0}
   moveSpeed: 10
   turnSpeed: 100
   jumpForce: 5
