@@ -4189,10 +4189,19 @@ MonoBehaviour:
   - {fileID: 6706383793650284782, guid: ab3a47cfa0714f747be73fd4fa6d7278, type: 3}
   - {fileID: 6986177027979004482, guid: e364dafa7d94bef47b810b47ce4ca2d2, type: 3}
   - {fileID: 2531915485943712421, guid: 54a72d134e62d5a4fb24e6f09bca7c70, type: 3}
+  spawnWeights:
+  - 1
+  - 3
+  - 2
+  - 8
+  - 4
   zoneTag: SpawnZone
   respawnDelay: 30
   initialBatch: 1
   spawning: 1
+  minSpawnDistanceToPlayer: 2.5
+  maxSpawnAttempts: 10
+  spawnColliderDelay: 0.4
 --- !u!4 &189266812
 Transform:
   m_ObjectHideFlags: 0
@@ -13883,9 +13892,9 @@ MonoBehaviour:
   - {fileID: 1602600198}
   - {fileID: 219076932}
   expGainBonus: 0.2
-  fitnessHPBonus: 1000
+  fitnessHPBonus: 20
   rewardBonus: 0.2
-  memoryBonus: 10
+  memoryBonus: 50
   speedBonus: 1
   maxMemory: 150
   memoryCostPerShot: 10
@@ -13904,7 +13913,7 @@ MonoBehaviour:
   targetCoins: 100
   nextLevelText: {fileID: 1271235151}
   nextLevelKey: 121
-  nextSceneName: Level01
+  nextSceneName: Level02 1
   shopPanel: {fileID: 1971405651}
   shopKey: 98
   lensPrice: 200
@@ -16623,8 +16632,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 890.8, y: -496}
-  m_SizeDelta: {x: 134.1064, y: 78.4193}
+  m_AnchoredPosition: {x: 890, y: 473}
+  m_SizeDelta: {x: 130, y: 130}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &656842960
 MonoBehaviour:
@@ -16702,8 +16711,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: c2dfe7a7c28caad459d58bc60bbb133b, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -19403,7 +19412,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u8FD4\u56DE"
+  m_Text: 
 --- !u!222 &745389959
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -44724,7 +44733,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u8840\u91CF\uFF1A"
+  m_Text: "\u4F53\u529B\uFF1A"
 --- !u!222 &1759002545
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -49325,7 +49334,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1971405652
 RectTransform:
   m_ObjectHideFlags: 0
@@ -50846,7 +50855,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2021313477}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -7.935, y: -4.27, z: -7.22}
+  m_LocalPosition: {x: -6.87, y: -4.27, z: -7.22}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 353423495}
