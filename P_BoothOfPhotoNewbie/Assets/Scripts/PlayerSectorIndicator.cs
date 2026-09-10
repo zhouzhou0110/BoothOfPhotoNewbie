@@ -18,6 +18,11 @@ public class PlayerSectorIndicator : MonoBehaviour
     [Header("淡出参数")]
     public float fadeDuration = 0.5f;
 
+    [Header("拍照音效")]
+    public AudioClip shootClip;        // 快门声（在Inspector里拖入音频）
+    public AudioSource shootSource;    // 可不拖，自动获取/创建
+    private static AudioClip cachedShootClip = null;  // 跨场景共享的拍照声（拖过一次即可）
+
     [Header("飘字样式（编辑器里调）")]
     public Font uiFont;
     public int floatTextFontSize = 40;
@@ -172,6 +177,23 @@ public class PlayerSectorIndicator : MonoBehaviour
         UpdateHPUI();
         UpdateExpUI();
 
+        // 拍照音效：任意场景拖过一次后，其他关卡自动沿用（不用每关都拖）
+        if (shootClip != null)
+            cachedShootClip = shootClip;
+        else if (cachedShootClip != null)
+            shootClip = cachedShootClip;
+
+        // 拍照音效源（2D音效，不受距离衰减）
+        shootSource = GetComponent<AudioSource>();
+        if (shootSource == null)
+            shootSource = gameObject.AddComponent<AudioSource>();
+        if (shootSource != null)
+        {
+            shootSource.playOnAwake = false;
+            shootSource.loop = false;
+            shootSource.spatialBlend = 0f;
+        }
+
         if (restartText != null)
             restartText.gameObject.SetActive(false);
         if (shopText != null)
@@ -209,6 +231,7 @@ public class PlayerSectorIndicator : MonoBehaviour
                     currentMemory -= memoryCostPerShot;
                     UpdateMemoryUI();
                     npcsInSector.Remove(target);
+                    PlayShootSound();
 
                     NPCController npc = target.GetComponent<NPCController>();
                     if (npc != null)
@@ -807,6 +830,13 @@ public class PlayerSectorIndicator : MonoBehaviour
 
         Destroy(npc);
         AddReward(rewardCoins);
+    }
+
+    // 拍照快门声（拍中目标时播放）
+    void PlayShootSound()
+    {
+        if (shootSource != null && shootClip != null)
+            shootSource.PlayOneShot(shootClip);
     }
 
     void OnTriggerEnter(Collider other)

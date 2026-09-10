@@ -33,6 +33,13 @@ public class NPCController : MonoBehaviour
     [Range(0.05f, 0.5f)]
     public float animSpeedScale = 0.2f;          // 实际速度→动画参数换算（2游走→0.4走，6追击→1.2跑）
 
+    [Header("生气音效（男女不同）")]
+    public AudioClip angryMaleClip;     // 男生气音效（Inspector里拖）
+    public AudioClip angryFemaleClip;   // 女生气音效（Inspector里拖）
+    public AudioSource angrySource;     // 可不拖，自动创建
+    [Tooltip("该NPC是女性模型？决定生气时播放哪个音效")]
+    public bool isFemale = false;       // 在对应NPC预制体Inspector里勾选
+
     private bool isAngry = false;
     private bool frozen = false;         // 冻结：淡出/游戏结束时置true，停止一切移动
     private Transform player;
@@ -62,6 +69,16 @@ public class NPCController : MonoBehaviour
         hasAnim = animator != null;
         if (hasAnim && !string.IsNullOrEmpty(speedParamName))
             speedParamHash = Animator.StringToHash(speedParamName);
+
+        // 自动找/创建音源（2D音效，不受距离衰减）
+        angrySource = GetComponent<AudioSource>();
+        if (angrySource == null)
+            angrySource = gameObject.AddComponent<AudioSource>();
+        if (angrySource != null)
+        {
+            angrySource.playOnAwake = false;
+            angrySource.spatialBlend = 0f;
+        }
     }
 
     // 三结果判定：0=出片 1=普通 2=生气（三个概率各自可调，按占比掷骰）
@@ -89,6 +106,7 @@ public class NPCController : MonoBehaviour
         isAngry = true;
         canChase = false;   // 重置，等延迟结束才追击
         StopWander();       // 生气后先站在原地，不再游走
+        PlayAngrySound();   // 播放生气音效
 
         // 变红（兼容URP材质）
         Renderer[] renderers = GetComponentsInChildren<Renderer>(true);
@@ -217,6 +235,15 @@ public class NPCController : MonoBehaviour
     {
         if (!hasAnim) return;
         animator.SetFloat(speedParamHash, actualSpeed * animSpeedScale);
+    }
+
+    // 生气音效（按男女模型选对应音效）
+    void PlayAngrySound()
+    {
+        if (angrySource == null) return;
+        AudioClip clip = isFemale ? angryFemaleClip : angryMaleClip;
+        if (clip != null)
+            angrySource.PlayOneShot(clip);
     }
 
     void OnCollisionEnter(Collision collision)

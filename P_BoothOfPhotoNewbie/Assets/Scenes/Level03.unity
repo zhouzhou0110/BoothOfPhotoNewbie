@@ -7476,6 +7476,7 @@ GameObject:
   - component: {fileID: 261228392}
   - component: {fileID: 261228391}
   - component: {fileID: 261228390}
+  - component: {fileID: 261228393}
   m_Layer: 0
   m_Name: EventSystem
   m_TagString: Untagged
@@ -7531,6 +7532,102 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!82 &261228393
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 261228389}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 8300000, guid: 3a135c42ec2189d439833958aa8e712c, type: 3}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 1
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &262391481
 GameObject:
   m_ObjectHideFlags: 0
@@ -19597,7 +19694,7 @@ MonoBehaviour:
   move: {x: 0, y: 0, z: 0}
   moveSpeed: 5
   turnSpeed: 500
-  jumpForce: 0
+  jumpForce: 3
   canMove: 1
 --- !u!114 &605602484
 MonoBehaviour:
@@ -41382,6 +41479,8 @@ MonoBehaviour:
   segments: 32
   heightOffset: 0.1
   fadeDuration: 1
+  shootClip: {fileID: 8300000, guid: 00805d4b2255c1e43a5d8ac4a1d17601, type: 3}
+  shootSource: {fileID: 0}
   uiFont: {fileID: 12800000, guid: e880ddaaf4b7c6d47b2766d2effca8df, type: 3}
   floatTextFontSize: 40
   floatTextStyle: 0
@@ -41389,7 +41488,7 @@ MonoBehaviour:
   maxReward: 25
   scoreText: {fileID: 8606532}
   expPerShot: 10
-  maxExp: 30
+  maxExp: 60
   expBar: {fileID: 871836050}
   expText: {fileID: 0}
   levelUpPanel: {fileID: 748758156}
@@ -41408,7 +41507,7 @@ MonoBehaviour:
   memoryCostPerShot: 10
   memoryBar: {fileID: 843805541}
   memoryText: {fileID: 1828881252}
-  maxHP: 40
+  maxHP: 80
   hpBar: {fileID: 176067537}
   hpText: {fileID: 986358251}
   timerText: {fileID: 437076057}
@@ -44602,6 +44701,9 @@ MonoBehaviour:
   respawnDelay: 30
   initialBatch: 1
   spawning: 1
+  minSpawnDistanceToPlayer: 2.5
+  maxSpawnAttempts: 10
+  spawnColliderDelay: 0.4
 --- !u!4 &1323184591
 Transform:
   m_ObjectHideFlags: 0
@@ -65998,7 +66100,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 60b765187010c7b48aa856354f090275, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 22.598
+      value: 14.28
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 60b765187010c7b48aa856354f090275, type: 3}
       propertyPath: m_LocalPosition.y

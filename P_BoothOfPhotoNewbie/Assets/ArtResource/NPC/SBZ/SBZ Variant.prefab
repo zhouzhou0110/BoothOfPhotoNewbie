@@ -125,4 +125,8 @@ MonoBehaviour:
   idleChance: 0.25
   animator: {fileID: 0}
   speedParamName: Speed
-  animSpeedScale: 0.05
+  animSpeedScale: 0.2
+  angryMaleClip: {fileID: 0}
+  angryFemaleClip: {fileID: 8300000, guid: 2d48e3651c496e74fbb295070a1a5a10, type: 3}
+  angrySource: {fileID: 0}
+  isFemale: 1

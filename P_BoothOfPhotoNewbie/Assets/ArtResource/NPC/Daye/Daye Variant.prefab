@@ -126,3 +126,7 @@ MonoBehaviour:
   animator: {fileID: 0}
   speedParamName: Speed
   animSpeedScale: 0.2
+  angryMaleClip: {fileID: 8300000, guid: 5561a4c8ed918c0418667ece4b005510, type: 3}
+  angryFemaleClip: {fileID: 0}
+  angrySource: {fileID: 0}
+  isFemale: 0
