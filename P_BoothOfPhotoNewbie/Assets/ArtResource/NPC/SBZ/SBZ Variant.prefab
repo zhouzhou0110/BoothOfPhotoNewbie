@@ -111,18 +111,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9a41c665a6fadf5479ae07544af92f07, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  goodShotChance: 0.4
-  goodReward: 15
-  normalChance: 0.55
-  normalReward: 10
-  angryChance: 0.05
+  goodShotChance: 0.1
+  goodReward: 30
+  normalChance: 0.45
+  normalReward: 20
+  angryChance: 0.45
   chaseSpeed: 6
   damageOnHit: 10
   angryDelay: 1
   wanderSpeed: 2
-  wanderRadius: 4
+  wanderRadius: 2
   changeInterval: 2
   idleChance: 0.25
   animator: {fileID: 0}
   speedParamName: Speed
-  animSpeedScale: 0.2
+  animSpeedScale: 0.05

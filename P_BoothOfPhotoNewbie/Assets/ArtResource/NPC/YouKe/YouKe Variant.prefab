@@ -120,9 +120,9 @@ MonoBehaviour:
   damageOnHit: 10
   angryDelay: 1
   wanderSpeed: 2
-  wanderRadius: 4
+  wanderRadius: 2
   changeInterval: 2
-  idleChance: 0.25
+  idleChance: 0
   animator: {fileID: 0}
   speedParamName: Speed
   animSpeedScale: 0.2
