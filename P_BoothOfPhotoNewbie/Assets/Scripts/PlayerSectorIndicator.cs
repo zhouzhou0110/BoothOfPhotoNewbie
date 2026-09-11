@@ -89,7 +89,32 @@ public class PlayerSectorIndicator : MonoBehaviour
     public KeyCode nextLevelKey = KeyCode.Y;
     public string nextSceneName = "";   // 手动指定下一关场景名（留空则自动 LevelN+1）
     private bool levelCleared = false;
+
+    [Header("最终关（最后一关，通关文本独立）")]
+    public bool isFinalLevel = false;         // 勾选=最后一关（如第三关漫展），通关文案单独显示
+    public string finalClearText = "恭喜通关！最终金币数: {0}";  // 最终关标题（{0}=金币数；不想显示数字就别写{0}）
+    public string finalNextText = "恭喜通关！按 Y 返回主菜单"; // 最终关：下方提示文本
     private static int currentLevel = 1;     // 当前关卡数（跨场景保留，Play停止重置）
+
+    [Header("文案内容（Inspector可改，留空则不显示该文字）")]
+    public string textShootGood = "+{0} 出片!";             // 出片飘字模板（{0}=金币数）
+    public string textShootNormal = "+{0} 普通";             // 普通飘字模板
+    public string textShootAngry = "生气!";                   // 生气飘字
+    public string textShootPlain = "+{0}";                    // 无Controller时兜底飘字模板
+    public string textMemoryShort = "剩余内存容量不足!";        // 内存不足提示
+    public string textDead = "燃尽了！最终金币数: {0}";         // 死亡结束文案（{0}=金币）
+    public string textClear = "时间到！达标通关！最终金币数: {0}"; // 普通关达标结束文案
+    public string textNotClear = "时间到！金币数: {0}（目标 {1}）"; // 未达标结束文案
+    public string textRestart = "按 R 重新开始";               // 重开提示
+    public string textNextLevel = "按 {0} 进入下一关";         // 下一关提示（{0}=按键）
+    public string textShopNotEnough = "金币不足! 需要{0}金币";  // 商店金币不足
+    public string textShopLens = "镜头升级! 扇形张开+{0}°";     // 商店镜头
+    public string textShopDrink = "血量回复+{0}";              // 商店饮料
+    public string textShopClock = "时间+{0}秒!";               // 商店钟表
+    public string textHpLabel = "血量: {0}/{1}";               // 血条标签
+    public string textExpLabel = "经验: {0}/{1}";              // 经验标签
+    public string textScoreLabel = "金币数量: {0}";            // 金币标签
+    public string textTimeLabel = "时间: {0:00}:{1:00}";       // 计时标签
 
     [Header("跨关继承（Y进下一关保留；R重开清零）")]
     private static bool carryOver = false;
@@ -125,6 +150,8 @@ public class PlayerSectorIndicator : MonoBehaviour
 
     void Awake()
     {
+        NormalizeTexts();   // 文案字段为空时自动回默认
+
         // 记录本关基础值（Inspector原始值，用于跨关计算加成）
         baseMaxHP = maxHP;
         baseMaxMemory = maxMemory;
@@ -240,15 +267,15 @@ public class PlayerSectorIndicator : MonoBehaviour
                         if (outcome == 2)
                         {
                             npc.TriggerAngry();
-                            StartCoroutine(SpawnFloatText(target.transform.position, "生气!", new Color(1f, 0.3f, 0.3f)));
+                            StartCoroutine(SpawnFloatText(target.transform.position, textShootAngry, new Color(1f, 0.3f, 0.3f)));
                         }
                         else
                         {
                             int rewardCoins = GetRewardWithMultiplier(npc.GetReward(outcome));
                             AddExp(GetExpGain());
                             string msg = (outcome == 0)
-                                ? "+" + rewardCoins + " 出片!"
-                                : "+" + rewardCoins + " 普通";
+                                ? string.Format(textShootGood, rewardCoins)
+                                : string.Format(textShootNormal, rewardCoins);
                             Color col = (outcome == 0)
                                 ? new Color(1f, 0.84f, 0f)
                                 : Color.white;
@@ -260,7 +287,7 @@ public class PlayerSectorIndicator : MonoBehaviour
                     {
                         int rewardCoins = GetRewardWithMultiplier(Random.Range(minReward, maxReward + 1));
                         AddExp(GetExpGain());
-                        StartCoroutine(SpawnFloatText(target.transform.position, "+" + rewardCoins, Color.white));
+                        StartCoroutine(SpawnFloatText(target.transform.position, string.Format(textShootPlain, rewardCoins), Color.white));
                         StartCoroutine(FadeOutAndDestroy(target.gameObject, fadeDuration, rewardCoins));
                     }
                 }
@@ -275,7 +302,7 @@ public class PlayerSectorIndicator : MonoBehaviour
                 if (bg != null)
                     bg.enabled = false;
                 if (memoryText != null)
-                    memoryText.text = "剩余内存容量不足!";
+                    memoryText.text = textMemoryShort;
             }
         }
 
@@ -301,7 +328,7 @@ public class PlayerSectorIndicator : MonoBehaviour
             {
                 int m = (int)(timeLeft / 60f);
                 int s = (int)(timeLeft % 60f);
-                timerText.text = string.Format("时间: {0:00}:{1:00}", m, s);
+                timerText.text = string.Format(textTimeLabel, m, s);
             }
         }
 
@@ -352,7 +379,7 @@ public class PlayerSectorIndicator : MonoBehaviour
     void FailGame()
     {
         isGameOver = true;
-        EndGame("燃尽了！最终金币数: " + score);
+        EndGame(string.Format(textDead, score));
     }
 
     void GameOver()
@@ -360,19 +387,30 @@ public class PlayerSectorIndicator : MonoBehaviour
         if (score >= targetCoins)
         {
             levelCleared = true;
-            EndGame("时间到！达标通关！最终金币数: " + score);
-            if (nextLevelText != null)
+            if (isFinalLevel)
             {
-                int nextNum = ParseLevelNumber(GetNextSceneName());
-                nextLevelText.text = (nextNum > 0)
-                    ? "按 " + nextLevelKey + " 进入下一关"
-                    : "按 " + nextLevelKey + " 进入下一关";
-                nextLevelText.gameObject.SetActive(true);
+                // 最终关：独立通关文案
+                EndGame(string.Format(finalClearText, score));
+                if (nextLevelText != null)
+                {
+                    nextLevelText.text = finalNextText;
+                    nextLevelText.gameObject.SetActive(true);
+                }
+            }
+            else
+            {
+                // 普通关：达标提示进入下一关
+                EndGame(string.Format(textClear, score));
+                if (nextLevelText != null)
+                {
+                    nextLevelText.text = string.Format(textNextLevel, nextLevelKey);
+                    nextLevelText.gameObject.SetActive(true);
+                }
             }
         }
         else
         {
-            EndGame("时间到！金币数: " + score + "（目标 " + targetCoins + "）");
+            EndGame(string.Format(textNotClear, score, targetCoins));
         }
     }
 
@@ -412,7 +450,7 @@ public class PlayerSectorIndicator : MonoBehaviour
 
         if (restartText != null)
         {
-            restartText.text = "按 R 重新开始";
+            restartText.text = textRestart;
             restartText.gameObject.SetActive(true);
             StartCoroutine(BlinkRestartText());
         }
@@ -481,35 +519,35 @@ public class PlayerSectorIndicator : MonoBehaviour
     // 镜头：扇形张开角度+
     public void BuyLens()
     {
-        if (score < lensPrice) { ShowShopMsg("金币不足! 需要" + lensPrice + "金币"); return; }
+        if (score < lensPrice) { ShowShopMsg(string.Format(textShopNotEnough, lensPrice)); return; }
         score -= lensPrice;
         bonusAngle += angleBonusPerLens;
         angle += angleBonusPerLens;
         RebuildSectorMesh();
         UpdateScoreUI();
-        ShowShopMsg("镜头升级! 扇形张开+" + angleBonusPerLens + "°");
+        ShowShopMsg(string.Format(textShopLens, angleBonusPerLens));
     }
 
     // 饮料：回血
     public void BuyDrink()
     {
-        if (score < drinkPrice) { ShowShopMsg("金币不足! 需要" + drinkPrice + "金币"); return; }
+        if (score < drinkPrice) { ShowShopMsg(string.Format(textShopNotEnough, drinkPrice)); return; }
         score -= drinkPrice;
         currentHP = Mathf.Min(currentHP + healAmount, maxHP);
         UpdateHPUI();
         UpdateScoreUI();
-        ShowShopMsg("血量回复+" + healAmount);
+        ShowShopMsg(string.Format(textShopDrink, healAmount));
     }
 
     // 钟表：增加游戏时间
     public void BuyClock()
     {
-        if (score < clockPrice) { ShowShopMsg("金币不足! 需要" + clockPrice + "金币"); return; }
+        if (score < clockPrice) { ShowShopMsg(string.Format(textShopNotEnough, clockPrice)); return; }
         score -= clockPrice;
         bonusTime += timeBonusPerClock;
         timeLeft += timeBonusPerClock;
         UpdateScoreUI();
-        ShowShopMsg("时间+" + timeBonusPerClock + "秒!");
+        ShowShopMsg(string.Format(textShopClock, timeBonusPerClock));
     }
 
     void ShowShopMsg(string msg)
@@ -579,7 +617,7 @@ public class PlayerSectorIndicator : MonoBehaviour
             hpBar.fillAmount = Mathf.Clamp01((float)currentHP / maxHP);
         }
         if (hpText != null)
-            hpText.text = "血量: " + currentHP + "/" + maxHP;
+            hpText.text = string.Format(textHpLabel, currentHP, maxHP);
     }
 
     void UpdateExpUI()
@@ -591,13 +629,13 @@ public class PlayerSectorIndicator : MonoBehaviour
             expBar.fillAmount = Mathf.Clamp01((float)currentExp / maxExp);
         }
         if (expText != null)
-            expText.text = "经验: " + currentExp + "/" + maxExp;
+            expText.text = string.Format(textExpLabel, currentExp, maxExp);
     }
 
     void UpdateScoreUI()
     {
         if (scoreText != null)
-            scoreText.text = "金币数量: " + score;
+            scoreText.text = string.Format(textScoreLabel, score);
     }
 
     int GetExpGain()
@@ -737,6 +775,31 @@ public class PlayerSectorIndicator : MonoBehaviour
     {
         score += coins;
         UpdateScoreUI();
+    }
+
+    // 文案字段为空时自动回默认（防止Inspector清空后游戏里没文字）
+    void NormalizeTexts()
+    {
+        if (string.IsNullOrEmpty(finalClearText)) finalClearText = "恭喜通关！最终金币数: {0}";
+        if (string.IsNullOrEmpty(finalNextText)) finalNextText = "恭喜通关！按 Y 返回主菜单";
+        if (string.IsNullOrEmpty(textShootGood)) textShootGood = "+{0} 出片!";
+        if (string.IsNullOrEmpty(textShootNormal)) textShootNormal = "+{0} 普通";
+        if (string.IsNullOrEmpty(textShootAngry)) textShootAngry = "生气!";
+        if (string.IsNullOrEmpty(textShootPlain)) textShootPlain = "+{0}";
+        if (string.IsNullOrEmpty(textMemoryShort)) textMemoryShort = "剩余内存容量不足!";
+        if (string.IsNullOrEmpty(textDead)) textDead = "燃尽了！最终金币数: {0}";
+        if (string.IsNullOrEmpty(textClear)) textClear = "时间到！达标通关！最终金币数: {0}";
+        if (string.IsNullOrEmpty(textNotClear)) textNotClear = "时间到！金币数: {0}（目标 {1}）";
+        if (string.IsNullOrEmpty(textRestart)) textRestart = "按 R 重新开始";
+        if (string.IsNullOrEmpty(textNextLevel)) textNextLevel = "按 {0} 进入下一关";
+        if (string.IsNullOrEmpty(textShopNotEnough)) textShopNotEnough = "金币不足! 需要{0}金币";
+        if (string.IsNullOrEmpty(textShopLens)) textShopLens = "镜头升级! 扇形张开+{0}°";
+        if (string.IsNullOrEmpty(textShopDrink)) textShopDrink = "血量回复+{0}";
+        if (string.IsNullOrEmpty(textShopClock)) textShopClock = "时间+{0}秒!";
+        if (string.IsNullOrEmpty(textHpLabel)) textHpLabel = "血量: {0}/{1}";
+        if (string.IsNullOrEmpty(textExpLabel)) textExpLabel = "经验: {0}/{1}";
+        if (string.IsNullOrEmpty(textScoreLabel)) textScoreLabel = "金币数量: {0}";
+        if (string.IsNullOrEmpty(textTimeLabel)) textTimeLabel = "时间: {0:00}:{1:00}";
     }
 
     Font GetUIFont()

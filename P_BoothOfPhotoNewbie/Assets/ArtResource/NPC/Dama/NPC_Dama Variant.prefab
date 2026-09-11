@@ -120,7 +120,7 @@ MonoBehaviour:
   damageOnHit: 10
   angryDelay: 1
   wanderSpeed: 2
-  wanderRadius: 2
+  wanderRadius: 1
   changeInterval: 2
   idleChance: 0
   animator: {fileID: 0}

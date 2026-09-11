@@ -20,6 +20,10 @@ public class NPCController : MonoBehaviour
     public float angryDelay = 1f;        // 生气后延迟几秒再追击（编辑器可调）
     private bool canChase = false;       // 延迟结束后才可追击
 
+    [Header("生气外观")]
+    [Range(0f, 1f)]
+    public float angryAlpha = 0.5f;      // 生气变红的透明度（0完全透明 ~ 1不透明），Inspector可调
+
     [Header("随机游走（出生点附近活动）")]
     public float wanderSpeed = 2f;       // 游走速度（比追击慢）
     public float wanderRadius = 4f;      // 以出生点为中心的活动范围（半径）
@@ -106,14 +110,33 @@ public class NPCController : MonoBehaviour
         isAngry = true;
         canChase = false;   // 重置，等延迟结束才追击
         StopWander();       // 生气后先站在原地，不再游走
-        PlayAngrySound();   // 播放生气音效
-
-        // 变红（兼容URP材质）
+                            // 变红（兼容URP材质）Alpha=0.5 → 50%透明度
         Renderer[] renderers = GetComponentsInChildren<Renderer>(true);
-        Color red = new Color(1f, 0.2f, 0.2f, 1f);
+        Color red = new Color(1f, 0.2f, 0.2f, angryAlpha); // 透明度用Inspector的 Angry Alpha 参数
         foreach (Renderer r in renderers)
         {
             Material m = r.material;
+            // 设置渲染为透明模式，保证Alpha生效
+            if (m.HasProperty("_Surface"))
+            {
+                m.SetFloat("_Surface", 1f);
+                m.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                m.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                m.SetFloat("_ZWrite", 0f);
+                m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            }
+            else
+            {
+                m.SetFloat("_Mode", 3f);
+                m.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                m.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                m.SetInt("_ZWrite", 0);
+                m.DisableKeyword("_ALPHATEST_ON");
+                m.EnableKeyword("_ALPHABLEND_ON");
+                m.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+            }
+            m.renderQueue = 3000;
+
             if (m.HasProperty("_Color"))
                 m.SetColor("_Color", red);
             if (m.HasProperty("_BaseColor"))
@@ -124,10 +147,10 @@ public class NPCController : MonoBehaviour
                 m.SetColor("_EmissionColor", red * 1.2f);
             }
         }
-
         // 延迟后开始追击
         StartCoroutine(DelayedChase());
     }
+
 
     // 冻结：停止一切移动（淡出、游戏结束时由主控脚本调用）
     public void Freeze()
